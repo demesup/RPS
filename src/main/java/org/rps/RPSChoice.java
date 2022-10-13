@@ -1,7 +1,6 @@
 package org.rps;
 
 import lombok.Getter;
-import lombok.ToString;
 import org.rps.exception.WrongChoiceCharacterException;
 
 import java.util.Arrays;
@@ -9,7 +8,6 @@ import java.util.Random;
 import java.util.stream.Collectors;
 
 @Getter
-@ToString
 public enum RPSChoice {
     PAPER('p'),
     SCISSORS('s'),
@@ -26,17 +24,17 @@ public enum RPSChoice {
 
     static RPSChoice byCharacter(char character) {
         switch (character) {
-            case 'r' -> {
+            case 'r', 'R' -> {
                 return ROCK;
             }
-            case 's' -> {
+            case 's', 'S' -> {
                 return SCISSORS;
             }
-            case 'p' -> {
+            case 'p', 'P' -> {
                 return PAPER;
             }
-            default -> throw new WrongChoiceCharacterException(character);
         }
+        throw new WrongChoiceCharacterException(character);
     }
 
     static int battle(RPSChoice choice1, RPSChoice choice2) {
@@ -53,7 +51,11 @@ public enum RPSChoice {
 
     public static RPSChoice randomChoice() {
         int i = random.nextInt(lastIndex);
-        System.out.println(i);
         return RPSChoice.values()[i];
+    }
+
+    @Override
+    public String toString() {
+        return this.name();
     }
 }

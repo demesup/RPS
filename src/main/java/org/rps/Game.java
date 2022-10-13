@@ -1,6 +1,7 @@
 package org.rps;
 
 
+import lombok.extern.slf4j.Slf4j;
 import org.rps.exception.ExitException;
 import org.rps.exception.WrongChoiceCharacterException;
 
@@ -10,12 +11,13 @@ import java.util.Optional;
 import static org.rps.RPSChoice.*;
 import static org.utils.Read.readCharacter;
 
+@Slf4j
 public class Game {
     private final String userName;
     private int rounds;
     private int currentRound = 0;
     private int userWins = 0;
-    private int robotWins = 0;
+    private int computerWins = 0;
     private int draw = 0;
 
     public Game(String userName, int rounds) throws IOException {
@@ -25,43 +27,48 @@ public class Game {
     }
 
     private void start() throws IOException {
-        System.out.println("Game started: user=" + userName + " rounds=" + rounds);
-        while (currentRound < rounds) {
+        log.info("Game started: user=" + userName + " rounds=" + rounds);
+        while (++currentRound <= rounds) {
             startRound();
-            currentRound++;
         }
-        System.out.println("Game ended: " +
-                "\n\trounds passed = " + currentRound +
+        log.info("Game ended: " +
+                "\n\trounds passed = " + --currentRound +
                 "\n\tdraw=" + draw +
                 "\n\tuser won=" + userWins +
-                "\n\trobot won=" + robotWins);
+                "\n\trobot won=" + computerWins);
     }
 
     private void startRound() throws IOException {
         try {
             startBattle();
         } catch (ExitException e) {
+            log.info("Game ended after round " + --currentRound + " of " + rounds);
             rounds = 0;
         } catch (WrongChoiceCharacterException e) {
-            System.out.println(e.getMessage() + "\nTry again");
-            startBattle();
+            log.debug(e.getMessage() + "\nTry again");
+            startRound();
         }
     }
 
     private void startBattle() throws IOException {
         var userChoice = getUserChoice().orElseThrow(ExitException::new);
-        var robotChoice = randomChoice();
-        var result = battle(userChoice, robotChoice);
-        System.out.println(userChoice + " " + robotChoice);
+        var computerChoice = randomChoice();
+        var message = userChoice + " VS " + computerChoice + " => " + getResult(userChoice, computerChoice);
+        log.info(message);
+    }
+
+    private String getResult(RPSChoice userChoice, RPSChoice computerChoice) {
+        var result = battle(userChoice, computerChoice);
+
         if (result == 0) {
-            System.out.println("draw");
             draw++;
+            return "draw";
         } else if (result < 0) {
-            System.out.println("Robot wins");
-            robotWins++;
+            computerWins++;
+            return "computer won";
         } else {
-            System.out.println(userName + " wins");
             userWins++;
+            return userName + " won";
         }
     }
 
@@ -73,7 +80,9 @@ public class Game {
                     \tp - for paper
                     \tr - for rock
                     \te - for exit""");
-            if (choice == 'e') return Optional.empty();
+            if (choice == 'e' || choice == 'E'){
+                return Optional.empty();
+            }
             return Optional.of(RPSChoice.byCharacter(choice));
         }
     }
