@@ -19,7 +19,7 @@ public class Main {
             new Game(
                     readString("Enter name"),
                     readPositiveNumber("Enter number of rounds")
-            );
+            ).start();
         } catch (IOException e) {
             log.error(e.getMessage());
         }
